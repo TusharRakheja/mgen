@@ -51,40 +51,28 @@ $ mgen merge --ind [path to .ind] file --snp [path to .snp] --geno [path to .gen
 ### Options
 ```
 $ mgen merge -h
-usage: merge [-h] [-i IND] [-s SNP] [-g GENO] [-f FAM] [-bi BIM] [-be BED] -d
-             DATA -p PLINK -n NAME -c CONVERTF [--convert-to-eigenstrat] -se
-             SEX [-ft FILE_TYPE] [--turn-on-wsl-for-plink]
-             [--turn-on-wsl-for-admix-tools]
+usage: merge [-h] -s SET [--is-eigenstrat] -d DATA -p PLINK -n NAME -c CONVERTF [--convert-to-eigenstrat] -se SEX [-ft FILE_TYPE] [--turn-on-wsl-for-plink] [--turn-on-wsl-for-admix-tools]
 
 Merge a raw data file into a Plink or Eigenstrat set
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
-  -i IND, --ind IND     Path of the .ind file (e.g "./set.ind")
-  -s SNP, --snp SNP     Path of the .snp file (e.g "./set.snp")
-  -g GENO, --geno GENO  Path of the .geno file (e.g "./set.geno")
-  -f FAM, --fam FAM     Path of the .fam file (e.g "./set.fam")
-  -bi BIM, --bim BIM    Path of the .bim file (e.g "./set.bim")
-  -be BED, --bed BED    Path of the .bed file (e.g "./set.bed")
+  -s SET, --set SET     Path to and prefix of your set (e.g. "/path/to/set" if the files are "/path/to/set.ind", "path/to/set.geno" and "path/to/set.snp")
+  --is-eigenstrat       Is the set in Eigenstrat format (.ind, .snp, .geno)? If yes, use this option
   -d DATA, --data DATA  Path of the raw data file (e.g "./23andMe.txt")
   -p PLINK, --plink PLINK
-                        Command used to invoke plink on your machine (e.g.
-                        "plink")
-  -n NAME, --name NAME  A name for your sample to be used in the merged
-                        dataset (e.g. "tony23andMe")
+                        Command used to invoke plink on your machine (e.g. "plink")
+  -n NAME, --name NAME  A name for your sample to be used in the merged dataset (e.g. "tony23andMe")
   -c CONVERTF, --convertf CONVERTF
-                        Command used to invoke convertf on your machine (e.g.
-                        "convertf")
+                        Command used to invoke convertf on your machine (e.g. "convertf")
   --convert-to-eigenstrat
   -se SEX, --sex SEX    Sex of the sample ('M', 'F' or 'U')
   -ft FILE_TYPE, --file-type FILE_TYPE
-                        Type of the raw data file ('Ancestry', '23andMe', or
-                        'Mapmygenome')
+                        Type of the raw data file ('Ancestry', '23andMe', or 'Mapmygenome')
   --turn-on-wsl-for-plink
                         (If running on Windows) Use Plink via WSL
   --turn-on-wsl-for-admix-tools
-                        (If running on Windows) Use AdmixTools like convertf
-                        via WSL
+                        (If running on Windows) Use AdmixTools like convertf via WSL
 
-Copyright (c) 2023 Tushar Rakheja (The MIT License)
+Copyright (c) 2025 Tushar Rakheja (The MIT License)
 ```

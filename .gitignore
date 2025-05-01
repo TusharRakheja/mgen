@@ -1,2 +1,5 @@
 __pycache__/
 build.ps1
+mgen.spec
+build/
+dist/

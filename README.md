@@ -22,9 +22,9 @@ usage: mgen [op]
 Mehrgarh Genetics Toolkit
 
 positional arguments:
-  op  The operation you want to perform ('merge', 'rotate', 'extract')
+  op  The operation you want to perform ('merge', 'rotate', 'extract', 'cache')
 
-Copyright (c) 2023 Tushar Rakheja (The MIT License)
+Copyright (c) 2025 Tushar Rakheja (The MIT License)
 ```
 
 ### Tools

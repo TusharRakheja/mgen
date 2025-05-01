@@ -50,5 +50,5 @@ optional arguments:
                         The path to the results file to look at for the
                         p-values
 
-Copyright (c) 2024 Tushar Rakheja (The MIT License)
+Copyright (c) 2025 Tushar Rakheja (The MIT License)
 ```

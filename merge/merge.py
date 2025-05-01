@@ -23,7 +23,7 @@ TYPE = None
 parser = argparse.ArgumentParser(
     prog='merge',
     description='Merge a raw data file into a Plink or Eigenstrat set',
-    epilog='Copyright (c) 2023 Tushar Rakheja (The MIT License)'
+    epilog='Copyright (c) 2025 Tushar Rakheja (The MIT License)'
 )
 
 args = None
@@ -460,13 +460,8 @@ def rename_plink_files():
 
 def parse_args():
     global parser, args, PREFIX, DATAFILE, TYPE
-
-    parser.add_argument('-i', '--ind', dest='ind', type=str, default=None, help='Path of the .ind file (e.g "./set.ind")')
-    parser.add_argument('-s', '--snp', dest='snp', type=str, default=None, help='Path of the .snp file (e.g "./set.snp")')
-    parser.add_argument('-g', '--geno', dest='geno', type=str, default=None, help='Path of the .geno file (e.g "./set.geno")')
-    parser.add_argument('-f', '--fam', dest='fam', type=str, default=None, help='Path of the .fam file (e.g "./set.fam")')
-    parser.add_argument('-bi', '--bim', dest='bim', type=str, default=None, help='Path of the .bim file (e.g "./set.bim")')
-    parser.add_argument('-be', '--bed', dest='bed', type=str, default=None, help='Path of the .bed file (e.g "./set.bed")')
+    parser.add_argument('-s', '--set', dest='set', type=str, help='Path to and prefix of your set (e.g. "/path/to/set" if the files are "/path/to/set.ind", "path/to/set.geno" and "path/to/set.snp")', required=True)
+    parser.add_argument('--is-eigenstrat', default=False, action='store_true', help='Is the set in Eigenstrat format (.ind, .snp, .geno)? If yes, use this option')
     parser.add_argument('-d', '--data', dest='data', type=str, help='Path of the raw data file (e.g "./23andMe.txt")', required=True)
     parser.add_argument('-p', '--plink', dest='plink', type=str, help='Command used to invoke plink on your machine (e.g. "plink")', required=True)
     parser.add_argument('-n', '--name', dest='name', type=str, help='A name for your sample to be used in the merged dataset (e.g. "tony23andMe")', required=True)
@@ -481,17 +476,19 @@ def parse_args():
 
     args.sex = args.sex.upper()
 
-    if args.fam is not None and args.bim is not None and args.bed is not None:
-        TYPE = 'plink'
-    elif args.ind is not None and args.snp is not None and args.geno is not None:
-        TYPE = 'eigenstrat'
-    else:
-        print("[merge] You need to provide either plink style .fam, .bim and .bed files, or eigenstrat style .ind, .snp and .geno files.")
-        sys.exit(1)
+    TYPE = 'eigenstrat' if args.is_eigenstrat else 'plink'
 
-    if TYPE == 'plink' and args.convert_to_eigenstrat and args.ind is None:
-        print("[merge] If you want to convert the merged set to eigenstrat, you need to provide an .ind file in addition to the plink set.")
-        
+    if TYPE == 'eigenstrat':
+        args.ind = "{}.ind".format(args.set)
+        args.snp = "{}.snp".format(args.set)
+        args.geno = "{}.geno".format(args.set)
+    else:
+        args.fam = "{}.fam".format(args.set)
+        args.bim = "{}.bim".format(args.set)
+        args.bed = "{}.bed".format(args.set)
+
+        if args.convert_to_eigenstrat:
+            args.ind = "{}.ind".format(args.set)
 
     PREFIX = pathlib.PurePath(args.ind if TYPE == 'eigenstrat' else args.fam).name
     PREFIX = PREFIX[:PREFIX.index('.')]

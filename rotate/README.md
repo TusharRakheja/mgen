@@ -51,7 +51,7 @@ sources:
 
 - Run with: 
 ```
-$ mgen rotate -i [path to .ind] -s [path to .snp] -g [path to .geno] -n [nthreads] -c [path to config.yml]
+$ mgen rotate -s [path to set] -n [nthreads] -c [path to config.yml]
 ```
 
 - You can tail the results using `tail -f "./results_$(md5sum [path to config.yml] | awk '{print $1}').csv"`.
@@ -102,32 +102,35 @@ $ mgen rotate -i [path to .ind] -s [path to .snp] -g [path to .geno] -n [nthread
 ```
 $ mgen rotate -h
 
-usage: rotate [-h] -i IND -s SNP -g GENO [-c CONFIG] [-n NTHREADS] [-p PMIN]
-              [--fstats] [--no-compete] [--keep-fstats-file]
-              [--keep-fstats-log] [--use-fstats-file USE_FSTATS_FILE]
-              [--turn-on-wsl-for-admix-tools] [--keep-output-files]
+usage: rotate [-h] -s SET [-c CONFIG] [-n NTHREADS] [-p PMIN] [--fstats] [--no-compete] [--keep-fstats-file]
+              [--keep-fstats-log] [--use-fstats-file USE_FSTATS_FILE] [--turn-on-wsl-for-admix-tools] [-r RANK]
+              [-mr MIN_RANK] [--keep-output-files] [--dry-run] [--max-rank]
 
 Run rotating qpAdm models, with or without competition
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
-  -i IND, --ind IND     Path to the .ind file (e.g "./set.ind")
-  -s SNP, --snp SNP     Path to the .snp file (e.g "./set.snp")
-  -g GENO, --geno GENO  Path to the .geno file (e.g "./set.geno")
+  -s SET, --set SET     Path to and prefix of your set (e.g. "/path/to/set" if the files are "/path/to/set.ind",
+                        "path/to/set.geno" and "path/to/set.snp")
   -c CONFIG, --config CONFIG
                         Path to the YAML config file (default: "./config.yml")
   -n NTHREADS, --nthreads NTHREADS
                         The number of models to run in parallel (default: 1)
   -p PMIN, --pmin PMIN  Minimum viable p-value
   --fstats              Pre-compute fstats for the whole config using qpfstats
-  --no-compete          Run the models in the config file without model
-                        competition
+  --no-compete          Run the models in the config file without model competition
   --keep-fstats-file    Do not delete the pre-computed fstats file
   --keep-fstats-log     Do not delete the qpfstats log file
   --use-fstats-file USE_FSTATS_FILE
                         Use pre-computed fstats file
   --turn-on-wsl-for-admix-tools
-                        (If running on Windows) Use AdmixTools like qpAdm and
-                        qpfstats via WSL
+                        (If running on Windows) Use AdmixTools like qpAdm and qpfstats via WSL
+  -r RANK, --rank RANK  The rank of the models you want to run (i.e. how many sources per model)?
+  -mr MIN_RANK, --min-rank MIN_RANK
+                        The min rank of the models you want to run (i.e. how many sources per model)?
   --keep-output-files   Do not delete the qpAdm output for each model
+  --dry-run             Dry run (creates an empty results file but a full cache file)
+  --max-rank            The --rank argument should be treated as a max rank
+
+Copyright (c) 2025 Tushar Rakheja (The MIT License)
 ```

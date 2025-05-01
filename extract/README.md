@@ -28,28 +28,25 @@ mgen extract -s v54 -p plink -c convertf -id I6186 -n Romania_MLBA_I6186 --path 
 
 ```
 $ mgen extract -h
-usage: extract [-h] -s SET -p PLINK -c CONVERTF [--convert-to-plink] -id ID
-               [-n NAME] --path PATH
+usage: extract [-h] -s SET -p PLINK -c CONVERTF [--is-eigenstrat] -id ID [-n NAME] --path PATH [--turn-on-wsl-for-plink] [--turn-on-wsl-for-admix-tools]
 
 Extract a raw data file from a Plink or Eigenstrat set
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -s SET, --set SET     Name of your set
   -p PLINK, --plink PLINK
-                        Command used to invoke plink on your machine (e.g.
-                        "plink")
+                        Command used to invoke plink on your machine (e.g. "plink")
   -c CONVERTF, --convertf CONVERTF
-                        Command used to invoke convertf on your machine (e.g.
-                        "convertf")
-  --convert-to-plink    Is the set in Eigenstrat format (.ind, .snp, .geno)?
-                        If yes, use this option
-  -id ID, --id ID       Name of your sample id (second column of the row in
-                        the .fam file)
-  -n NAME, --name NAME  Name of your extracted raw data file (defaults to the
-                        name of the smaple id)
-  --path PATH           Path to the folder in which your set lives (e.g. './',
-                        '/usr/bin/' etc)
+                        Command used to invoke convertf on your machine (e.g. "convertf")
+  --is-eigenstrat       Is the set in Eigenstrat format (.ind, .snp, .geno)? If yes, use this option
+  -id ID, --id ID       Name of your sample id (second column of the row in the .fam file)
+  -n NAME, --name NAME  Name of your extracted raw data file (defaults to the name of the smaple id)
+  --path PATH           Path to the folder in which your set lives (e.g. './', '/usr/bin/' etc)
+  --turn-on-wsl-for-plink
+                        (If running on Windows) Use Plink via WSL
+  --turn-on-wsl-for-admix-tools
+                        (If running on Windows) Use AdmixTools like convertf via WSL
 
-Copyright (c) 2023 Tushar Rakheja (The MIT License)
+Copyright (c) 2025 Tushar Rakheja (The MIT License)
 ```

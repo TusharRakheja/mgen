@@ -28,7 +28,7 @@ CACHE = None
 parser = argparse.ArgumentParser(
     prog='rotate',
     description='Run rotating qpAdm models, with or without competition',
-    epilog='Copyright (c) 2023 Tushar Rakheja (The MIT License)'
+    epilog='Copyright (c) 2025 Tushar Rakheja (The MIT License)'
 )
 
 def is_valid(conf):
@@ -375,9 +375,7 @@ def parse_args():
     global parser, RESULTS_QUEUE, args, IND, SNP, GENO, CONFIG_FILE, MODELS_POOL, PID, SUFFIX, RESULTS, CACHE
 
     RESULTS_QUEUE = Queue()
-    parser.add_argument('-i', '--ind', dest='ind', type=str, help='Path to the .ind file (e.g "./set.ind")', required=True)
-    parser.add_argument('-s', '--snp', dest='snp', type=str, help='Path to the .snp file (e.g "./set.snp")', required=True)
-    parser.add_argument('-g', '--geno', dest='geno', type=str, help='Path to the .geno file (e.g "./set.geno")', required=True)
+    parser.add_argument('-s', '--set', dest='set', type=str, help='Path to and prefix of your set (e.g. "/path/to/set" if the files are "/path/to/set.ind", "path/to/set.geno" and "path/to/set.snp")', required=True)
     parser.add_argument(
         '-c', '--config', dest='config', type=str, default='./config.yml', help='Path to the YAML config file (default: "./config.yml")'
     )
@@ -399,9 +397,9 @@ def parse_args():
 
     args, _ = parser.parse_known_args()
 
-    IND = args.ind
-    SNP = args.snp
-    GENO = args.geno
+    IND = "{}.ind".format(args.set)
+    SNP = "{}.snp".format(args.set)
+    GENO = "{}.geno".format(args.set)
 
     CONFIG_FILE = args.config
     MODELS_POOL = ThreadPoolExecutor(args.nthreads)
