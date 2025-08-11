@@ -10,6 +10,7 @@ from queue import Queue
 
 CORE_RIGHT = 'core_right'
 TARGET = 'target'
+TARGETS = 'targets'
 SOURCES = 'sources'
 
 RESULTS_QUEUE = None
@@ -22,8 +23,10 @@ CONFIG_FILE = None
 MODELS_POOL = None
 PID = None
 SUFFIX = None
-RESULTS = None
-CACHE = None
+RESULTS = {}
+CACHE = {}
+
+TARGET_LIST = []
 
 parser = argparse.ArgumentParser(
     prog='rotate',
@@ -32,7 +35,7 @@ parser = argparse.ArgumentParser(
 )
 
 def is_valid(conf):
-    global CORE_RIGHT, TARGET, SOURCES, IND
+    global CORE_RIGHT, TARGET, TARGETS, TARGET_LIST, SOURCES, IND
 
     if CORE_RIGHT not in conf.keys():
         return False
@@ -43,8 +46,13 @@ def is_valid(conf):
             return False
     
     if not isinstance(conf[TARGET], str):
-        return False
-    
+        if not isinstance(conf[TARGETS], list):
+            return False
+        else:
+            for target in conf[TARGETS]:
+                if not isinstance(target, str):
+                    return False
+
     if not isinstance(conf[SOURCES], list):
         return False
     for sources in conf[SOURCES]:
@@ -65,15 +73,22 @@ def is_valid(conf):
 
         parts = line.split()
         samples.add(parts[-1])
+
+    if TARGETS in conf.keys():
+        TARGET_LIST = conf[TARGETS]
     
+    if TARGET in conf.keys():
+        TARGET_LIST.append(conf[TARGET])
+
     for source in conf[CORE_RIGHT]:
         if source not in samples:
             print("Source {} not found in the {} file".format(source, IND))
             return False
-    
-    if conf[TARGET] not in samples:
-        print("Source {} not found in the {} file".format(conf[TARGET], IND))
-        return False
+
+    for target in TARGET_LIST:
+        if target not in samples:
+            print("Target {} not found in the {} file".format(target, IND))
+            return False
 
     for sources in conf[SOURCES]:
         for source in sources:
@@ -88,12 +103,12 @@ def run(model_number, target, model, source_sets, core_sources):
     global PID
 
     try:
-        LEFT = './left_{}_{}'.format(PID, model_number)
-        RIGHT = './right_{}_{}'.format(PID, model_number)
-        OUTPUT = './output_{}_{}'.format(PID, model_number)
-        PARQPADM = './parqpadm_{}_{}'.format(PID, model_number)
+        LEFT = './left_{}_{}_{}'.format(target, PID, model_number)
+        RIGHT = './right_{}_{}_{}'.format(target, PID, model_number)
+        OUTPUT = './output_{}_{}_{}'.format(target, PID, model_number)
+        PARQPADM = './parqpadm_{}_{}_{}'.format(target, PID, model_number)
 
-        generate_parqpadm(PARQPADM, LEFT[2:], RIGHT[2:])
+        generate_parqpadm(PARQPADM, LEFT[2:], RIGHT[2:], target)
 
         with open(LEFT, 'w') as outfile:
             outfile.write("{}\n".format(target))
@@ -119,7 +134,7 @@ def run(model_number, target, model, source_sets, core_sources):
 
 
         with open(OUTPUT, 'w') as outfile:
-            print("{} - Running model {}".format(model_number, model))
+            print("{} - Starting qpAdm on model {} for {}".format(model_number, model, target))
             subprocess.call([*(['wsl'] if args.turn_on_wsl_for_admix_tools else []), 'qpAdm', '-p', PARQPADM[2:]], stdout=outfile)
 
         weights, errors, pvalue = weights_errors_pvalue(OUTPUT)
@@ -132,26 +147,26 @@ def run(model_number, target, model, source_sets, core_sources):
         clean_up_model_files(LEFT, RIGHT, OUTPUT, PARQPADM, model)
 
 
-def write_results():
+def write_results(cur_target):
     global RESULTS_QUEUE, RESULTS
 
-    while not RESULTS_QUEUE.empty():
-        with open(RESULTS, 'a') as outfile:
-            target, model, weights, errors, pvalue = RESULTS_QUEUE.get().result()
+    while not RESULTS_QUEUE[cur_target].empty():
+        with open(RESULTS[cur_target], 'a') as outfile:
+            target, model, weights, errors, pvalue = RESULTS_QUEUE[cur_target].get().result()
             if weights is None:
                 print("\tFailed model {}. Will be attempted again if you re-run the script".format(model))
                 continue
 
             outfile.write(result_row(target, model, weights, errors, pvalue))
-            add_model_to_cache(model)
+            add_model_to_cache(model, target)
 
 
-def generate_parqpadm(parqpadm, left, right):
+def generate_parqpadm(parqpadm, left, right, target):
     global IND, SNP, GENO, SUFFIX
     with open(parqpadm, 'w') as outfile:
 
         if args.fstats:
-            fstats_filename = 'fstats_{}'.format(SUFFIX) if args.use_fstats_file is None else args.use_fstats_file.split('/')[-1]
+            fstats_filename = 'fstats_{}_{}'.format(target, SUFFIX) if args.use_fstats_file is None else args.use_fstats_file.split('/')[-1]
             outfile.write('fstatsname:      {}\n'.format(fstats_filename))
         else:
             outfile.write('indivname:       {}\n'.format(IND))
@@ -165,10 +180,10 @@ def generate_parqpadm(parqpadm, left, right):
         outfile.write('inbreed:         NO\n')
 
 
-def generate_poplist(conf):
-    global CORE_RIGHT, TARGET, SOURCES, SUFFIX
+def generate_poplist(conf, target):
+    global CORE_RIGHT, SOURCES, SUFFIX
     
-    POPLIST = './poplist_{}'.format(SUFFIX)
+    POPLIST = './poplist_{}_{}'.format(target, SUFFIX)
 
     if os.path.isfile(POPLIST):
         # already exists
@@ -182,13 +197,13 @@ def generate_poplist(conf):
             for source in sources:
                 outfile.write("{}\n".format(source))
         
-        outfile.write(conf[TARGET])
+        outfile.write(target)
 
 
-def generate_parqpfstats():
+def generate_parqpfstats(target):
     global IND, SNP, GENO, SUFFIX
 
-    PARQPFSTATS = './parqpfstats_{}'.format(SUFFIX)
+    PARQPFSTATS = './parqpfstats_{}_{}'.format(target, SUFFIX)
 
     if os.path.isfile(PARQPFSTATS):
         # already exists
@@ -198,27 +213,27 @@ def generate_parqpfstats():
         outfile.write('indivname:       {}\n'.format(IND.split('/')[-1].strip()))
         outfile.write('snpname:         {}\n'.format(SNP.split('/')[-1].strip()))
         outfile.write('genotypename:    {}\n'.format(GENO.split('/')[-1].strip()))
-        outfile.write('poplistname:     poplist_{}\n'.format(SUFFIX))
-        outfile.write('fstatsoutname:   fstats_{}\n'.format(SUFFIX))
+        outfile.write('poplistname:     poplist_{}_{}\n'.format(target, SUFFIX))
+        outfile.write('fstatsoutname:   fstats_{}_{}\n'.format(target, SUFFIX))
         outfile.write('allsnps:         YES\n')
         outfile.write('inbreed:         NO\n')
         outfile.write('scale:           NO\n')
 
 
-def run_qpfstats():
+def run_qpfstats(target):
     global SUFFIX
 
-    QP_LOG_OUTPUT = './qpfstats_log_{}'.format(SUFFIX)
+    QP_LOG_OUTPUT = './qpfstats_log_{}_{}'.format(target, SUFFIX)
 
-    if os.path.isfile('./fstats_{}'.format(SUFFIX)):
+    if os.path.isfile('./fstats_{}_{}'.format(target, SUFFIX)):
         # already exists
         return
 
     if args.keep_fstats_log:
         with open(QP_LOG_OUTPUT, 'w') as outfile:
-            subprocess.call([*(['wsl'] if args.turn_on_wsl_for_admix_tools else []), 'qpfstats', '-p', 'parqpfstats_{}'.format(SUFFIX)], stdout=outfile)
+            subprocess.call([*(['wsl'] if args.turn_on_wsl_for_admix_tools else []), 'qpfstats', '-p', 'parqpfstats_{}_{}'.format(target, SUFFIX)], stdout=outfile)
     else:
-        subprocess.call([*(['wsl'] if args.turn_on_wsl_for_admix_tools else []), 'qpfstats', '-p', 'parqpfstats_{}'.format(SUFFIX)])
+        subprocess.call([*(['wsl'] if args.turn_on_wsl_for_admix_tools else []), 'qpfstats', '-p', 'parqpfstats_{}_{}'.format(target, SUFFIX)])
 
 
 def clean_up_model_files(left, right, output, parqpadm, model):
@@ -234,17 +249,17 @@ def clean_up_model_files(left, right, output, parqpadm, model):
         print("Error removing files for model {}. Runs are unaffected though.".format(model))
 
 
-def clean_up_fstats():
+def clean_up_fstats(target):
     global SUFFIX
     try:
         if args.use_fstats_file is None:
-            os.remove('./parqpfstats_{}'.format(SUFFIX))
+            os.remove('./parqpfstats_{}_{}'.format(target, SUFFIX))
 
         if (args.use_fstats_file is None) and (not args.keep_fstats_file):
-            os.remove('./fstats_{}'.format(SUFFIX))
+            os.remove('./fstats_{}_{}'.format(target, SUFFIX))
 
         if args.use_fstats_file is None:
-            os.remove('./poplist_{}'.format(SUFFIX))
+            os.remove('./poplist_{}_{}'.format(target, SUFFIX))
     except:
         print("Error removing files for fstats. Runs are unaffected though.")
         pass
@@ -347,16 +362,20 @@ def write_headers(num_sources):
     outfile.close()
 
 
-def add_model_to_cache(model):
-    with open(CACHE, 'a') as outfile:
+def add_model_to_cache(model, target):
+    global CACHE
+
+    with open(CACHE[target], 'a') as outfile:
         outfile.write(','.join(model) + '\n')
 
 
-def is_model_in_cache(model):
+def is_model_in_cache(model, target):
+    global CACHE
+
     key = ','.join(model)
 
     try:
-        infile = open(CACHE, 'r')
+        infile = open(CACHE[target], 'r')
     except OSError:
         return False
 
@@ -374,7 +393,7 @@ def is_model_in_cache(model):
 def parse_args():
     global parser, RESULTS_QUEUE, args, IND, SNP, GENO, CONFIG_FILE, MODELS_POOL, PID, SUFFIX, RESULTS, CACHE
 
-    RESULTS_QUEUE = Queue()
+    RESULTS_QUEUE = {}
     parser.add_argument('-s', '--set', dest='set', type=str, help='Path to and prefix of your set (e.g. "/path/to/set" if the files are "/path/to/set.ind", "path/to/set.geno" and "path/to/set.snp")', required=True)
     parser.add_argument(
         '-c', '--config', dest='config', type=str, default='./config.yml', help='Path to the YAML config file (default: "./config.yml")'
@@ -409,9 +428,6 @@ def parse_args():
     with open(CONFIG_FILE, 'rb') as tempconfig:
         SUFFIX = hashlib.md5(tempconfig.read()).hexdigest()
 
-    RESULTS = './results_{}.csv'.format(SUFFIX)
-    CACHE = './cache_{}.txt'.format(SUFFIX)
-
 
 def get_model_list(source_sets):
     global args
@@ -442,7 +458,7 @@ def get_model_list(source_sets):
 
 
 def main():
-    global CORE_RIGHT, TARGET, SOURCES, CONFIG_FILE, MODELS_POOL
+    global CORE_RIGHT, TARGET_LIST, SOURCES, CONFIG_FILE, MODELS_POOL, RESULTS, CACHE, SUFFIX
 
     parse_args()
 
@@ -460,40 +476,47 @@ def main():
 
     models = get_model_list(source_sets)
 
-    write_headers(len(source_sets))
-    
-    print("Will try {} models".format(len(models)))
+    for target in TARGET_LIST:
+        RESULTS[target] = './results_{}_{}.csv'.format(target, SUFFIX)
+        CACHE[target] = './cache_{}_{}.txt'.format(target, SUFFIX)
 
-    if not args.dry_run and args.fstats and args.use_fstats_file is None:
-        print("Running qpfstats (can take a while) ...")
-        generate_poplist(config)
-        generate_parqpfstats()
-        run_qpfstats()
+        RESULTS_QUEUE[target] = Queue()
 
-    model_number = 1
-    for model in models:
-        if is_model_in_cache(model):
-            print("{} - Skipping model {} because already in cache.".format(model_number, model))
-            model_number += 1
-            continue
+        write_headers(len(source_sets))
+        
+        print("Will try {} models".format(len(models)))
 
-        if len(list(filter(lambda source: source.strip() != "", model))) < 2:
-            print("{} - Skipping model {} because we need at least two sources.".format(model_number, model))
-            model_number += 1
-            continue
+        for target in TARGET_LIST:
+            if not args.dry_run and args.fstats and args.use_fstats_file is None:
+                print("Running qpfstats (can take a while) ...")
+                generate_poplist(config, target)
+                generate_parqpfstats(target)
+                run_qpfstats(target)
 
-        if args.dry_run:
-            print("{} - Running model {}".format(model_number, model))
-            add_model_to_cache(model)
-        else:
-            task = MODELS_POOL.submit(run, model_number, config[TARGET], model, source_sets, config[CORE_RIGHT])
-            RESULTS_QUEUE.put(task)
-        model_number += 1
+            model_number = 1
+            for model in models:
+                if is_model_in_cache(model, target):
+                    print("{} - Skipping model {} for {} because already in cache.".format(model_number, model, target))
+                    model_number += 1
+                    continue
 
-    write_results()
+                if len(list(filter(lambda source: source.strip() != "", model))) < 2:
+                    print("{} - Skipping model {} for {} because we need at least two sources.".format(model_number, model, target))
+                    model_number += 1
+                    continue
 
-    if args.fstats:
-        clean_up_fstats()
+                if args.dry_run:
+                    print("{} - Running model {} for {}".format(model_number, model, target))
+                    add_model_to_cache(model, target)
+                else:
+                    task = MODELS_POOL.submit(run, model_number, target, model, source_sets, config[CORE_RIGHT])
+                    RESULTS_QUEUE[target].put(task)
+                model_number += 1
+
+        write_results(target)
+
+        if args.fstats:
+            clean_up_fstats(target)
 
 
 if __name__ == '__main__':
