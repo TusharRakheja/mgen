@@ -438,7 +438,7 @@ def get_model_list(source_sets):
         all_sources = list(set(itertools.chain.from_iterable(source_sets)))
         all_sources.remove('')
 
-        if not args.min_rank:
+        if not args.max_rank:
             return list(itertools.combinations(all_sources, args.rank))
         else:
             all_models = []
