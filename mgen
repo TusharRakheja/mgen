@@ -7,6 +7,7 @@ from rotate import rotate
 from merge import merge
 from extract import extract
 from cache import cache
+from convert import convertf_p, convertf
 
 parser = argparse.ArgumentParser(
     prog='mgen',
@@ -30,6 +31,10 @@ def main():
         extract.main()
     elif args.op == 'cache':
         cache.main()
+    elif args.op == 'convertf_p':
+        convertf_p.main()
+    elif args.op == 'convertf':
+        convertf.main()
     else:
         parser.print_help()
         sys.exit(1)

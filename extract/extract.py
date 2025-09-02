@@ -122,8 +122,8 @@ def parse_args():
     )
 
     parser.add_argument('-s', '--set', dest='set', type=str, help='Name of your set', required=True)
-    parser.add_argument('-p', '--plink', dest='plink', type=str, help='Command used to invoke plink on your machine (e.g. "plink")', required=True)
-    parser.add_argument('-c', '--convertf', dest='convertf', type=str, help='Command used to invoke convertf on your machine (e.g. "convertf")', required=True)
+    parser.add_argument('-p', '--plink', dest='plink', default="plink", type=str, help='Command used to invoke plink on your machine (e.g. "plink")')
+    parser.add_argument('-c', '--convertf', dest='convertf', default="convertf", type=str, help='Command used to invoke convertf on your machine (e.g. "convertf")')
     parser.add_argument('--is-eigenstrat', default=False, action='store_true', help='Is the set in Eigenstrat format (.ind, .snp, .geno)? If yes, use this option')
     parser.add_argument('-id', '--id', dest='id', type=str, help='Name of your sample id (second column of the row in the .fam file)', required=True)
     parser.add_argument('-n', '--name', dest='name', type=str, default=None, help='Name of your extracted raw data file (defaults to the name of the smaple id)', required=False)
