@@ -8,6 +8,7 @@ from merge import merge
 from extract import extract
 from cache import cache
 from convert import convertf_p, convertf
+from snplot import snplot
 
 parser = argparse.ArgumentParser(
     prog='mgen',
@@ -16,7 +17,7 @@ parser = argparse.ArgumentParser(
     epilog='Copyright (c) 2025 Tushar Rakheja (The MIT License)'
 )
 
-parser.add_argument('op', nargs='?', default=os.getcwd(), help="The operation you want to perform ('merge', 'rotate', 'extract', 'cache')")
+parser.add_argument('op', nargs='?', default=os.getcwd(), help="The operation you want to perform ('merge', 'rotate', 'extract', 'cache', 'convertf', 'convertf_p', 'snplot')")
 
 def main():
     global parser
@@ -35,6 +36,8 @@ def main():
         convertf_p.main()
     elif args.op == 'convertf':
         convertf.main()
+    elif args.op == 'snplot':
+        snplot.main()
     else:
         parser.print_help()
         sys.exit(1)
