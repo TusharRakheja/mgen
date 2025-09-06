@@ -38,3 +38,6 @@ Here are the tools `mgen` has right now:
 - [merge](https://github.com/TusharRakheja/mgen/tree/main/merge)
 - [extract](https://github.com/TusharRakheja/mgen/tree/main/extract)
 - [cache](https://github.com/TusharRakheja/mgen/tree/main/cache)
+- [convertf](https://github.com/TusharRakheja/mgen/tree/main/convertf)
+- [convertf_p](https://github.com/TusharRakheja/mgen/tree/main/convertf_p)
+- [snplot](https://github.com/TusharRakheja/mgen/tree/main/snplot)
