@@ -9,13 +9,14 @@ ___
 
 ### Dependencies
 
-- [Plink 1.90](https://www.cog-genomics.org/plink2/) in your path
+- [Plink](https://www.cog-genomics.org/plink2/) in your path
 - Python 3.10 (if running on Linux or MacOS)
 - [AdmixTools](https://github.com/DReichLab/AdmixTools) in your path
 
 ### Usage
 
-- Download this repo and add the root directory to PATH.
+- On Linux or MacOS, download this repo and add the root directory to PATH.
+- For Windows, download the .exe from the releases section.
 
 ```
 $ mgen
