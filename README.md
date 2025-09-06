@@ -1,4 +1,7 @@
-<img src="https://github.com/TusharRakheja/mgen/raw/main/assets/title.png" width="auto" height="100px" />
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/TusharRakheja/mgen/raw/main/assets/title_dark.png">
+  <img src="https://github.com/TusharRakheja/mgen/raw/main/assets/title.png" width="auto" height="100px">
+</picture>
 
 ___
 
