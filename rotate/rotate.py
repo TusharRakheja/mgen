@@ -44,14 +44,22 @@ def is_valid(conf):
     for source in conf[CORE_RIGHT]:
         if not isinstance(source, str):
             return False
-    
-    if not isinstance(conf[TARGET], str):
+
+    has_target = TARGET in conf
+    has_targets = TARGETS in conf
+
+    if not has_target and not has_targets:
+        return False
+
+    if has_target and not isinstance(conf[TARGET], str):
+        return False
+
+    if has_targets:
         if not isinstance(conf[TARGETS], list):
             return False
-        else:
-            for target in conf[TARGETS]:
-                if not isinstance(target, str):
-                    return False
+        for target in conf[TARGETS]:
+            if not isinstance(target, str):
+                return False
 
     if not isinstance(conf[SOURCES], list):
         return False
@@ -342,13 +350,13 @@ def result_row(target, model, weights, errors, pvalue):
     return res
 
 
-def write_headers(num_sources):
+def write_headers(num_sources, target):
     global RESULTS
 
-    if os.path.isfile(RESULTS):
+    if os.path.isfile(RESULTS[target]):
         return
 
-    outfile = open(RESULTS, 'w')
+    outfile = open(RESULTS[target], 'w')
 
     outfile.write('Target,')
     for i in range(num_sources if args.rank is None else args.rank):
@@ -482,36 +490,35 @@ def main():
 
         RESULTS_QUEUE[target] = Queue()
 
-        write_headers(len(source_sets))
+        write_headers(len(source_sets), target)
         
         print("Will try {} models".format(len(models)))
 
-        for target in TARGET_LIST:
-            if not args.dry_run and args.fstats and args.use_fstats_file is None:
-                print("Running qpfstats (can take a while) ...")
-                generate_poplist(config, target)
-                generate_parqpfstats(target)
-                run_qpfstats(target)
+        if not args.dry_run and args.fstats and args.use_fstats_file is None:
+            print("Running qpfstats (can take a while) ...")
+            generate_poplist(config, target)
+            generate_parqpfstats(target)
+            run_qpfstats(target)
 
-            model_number = 1
-            for model in models:
-                if is_model_in_cache(model, target):
-                    print("{} - Skipping model {} for {} because already in cache.".format(model_number, model, target))
-                    model_number += 1
-                    continue
-
-                if len(list(filter(lambda source: source.strip() != "", model))) < 2:
-                    print("{} - Skipping model {} for {} because we need at least two sources.".format(model_number, model, target))
-                    model_number += 1
-                    continue
-
-                if args.dry_run:
-                    print("{} - Running model {} for {}".format(model_number, model, target))
-                    add_model_to_cache(model, target)
-                else:
-                    task = MODELS_POOL.submit(run, model_number, target, model, source_sets, config[CORE_RIGHT])
-                    RESULTS_QUEUE[target].put(task)
+        model_number = 1
+        for model in models:
+            if is_model_in_cache(model, target):
+                print("{} - Skipping model {} for {} because already in cache.".format(model_number, model, target))
                 model_number += 1
+                continue
+
+            if len(list(filter(lambda source: source.strip() != "", model))) < 2:
+                print("{} - Skipping model {} for {} because we need at least two sources.".format(model_number, model, target))
+                model_number += 1
+                continue
+
+            if args.dry_run:
+                print("{} - Running model {} for {}".format(model_number, model, target))
+                add_model_to_cache(model, target)
+            else:
+                task = MODELS_POOL.submit(run, model_number, target, model, source_sets, config[CORE_RIGHT])
+                RESULTS_QUEUE[target].put(task)
+            model_number += 1
 
         write_results(target)
 
