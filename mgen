@@ -11,7 +11,7 @@ from convert import convertf_p, convertf
 from snplot import snplot
 
 parser = argparse.ArgumentParser(
-    prog='mgen',
+    prog='mgen v26.6.14',
     add_help=False,
     description='Mehrgarh Genetics Toolkit',
     epilog='Copyright (c) 2025 Tushar Rakheja (The MIT License)'
