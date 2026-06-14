@@ -492,7 +492,7 @@ def main():
 
         write_headers(len(source_sets), target)
         
-        print("Will try {} models".format(len(models)))
+        print("Will try {} models for {}".format(len(models, target)))
 
         if not args.dry_run and args.fstats and args.use_fstats_file is None:
             print("Running qpfstats (can take a while) ...")
@@ -520,6 +520,8 @@ def main():
                 RESULTS_QUEUE[target].put(task)
             model_number += 1
 
+
+    for target in TARGET_LIST:
         write_results(target)
 
         if args.fstats:
